@@ -4,11 +4,12 @@ plugins {
 
     //rooms dependency
     id("com.google.devtools.ksp")
+    alias(libs.plugins.kotlin.compose)
 }
 
 android {
     namespace = "com.example.tr2_process"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.tr2_process"

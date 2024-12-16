@@ -20,46 +20,58 @@ import androidx.navigation.NavController
 import com.example.tr2_process.ui.theme.ServiceViewModel
 import com.example.tr2_process.data.HostConfigEntity
 
+var enable: Int = 0
+
 @Composable
 fun HostScreen(navController: NavController, viewModel: ServiceViewModel) {
-    // Obtener la lista de hosts del ViewModel
     val hostList = viewModel.hostState.collectAsState().value.hostConfigList
 
-    // Si la lista de hosts está vacía, mostrar un mensaje
     if (hostList.isEmpty()) {
-        Text("No hosts available")
-    } else {
-
-        Column {
-            // Botón de "Back" para regresar a la pantalla anterior
-            Button(
-                onClick = {
-                    navController.popBackStack()  // Regresar a la pantalla anterior
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3), contentColor = Color.White),
-                modifier = Modifier.padding(bottom = 16.dp) // Espaciado debajo del botón
-            ) {
-                Text("Back")
-            }
-            // Botón de "Add" para añadir un nuevo host
-            Button(
-                onClick = {
-                    navController.navigate("addHost")
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3), contentColor = Color.White),
-                modifier = Modifier.padding(bottom = 16.dp) // Espaciado debajo del botón
-            ) {
-                Text("Add")
-            }
-            // Mostrar una lista de hosts guardados
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
-                items(hostList) { host ->
-                    HostItem(host = host, onClick = {
-                        // Cuando un host es seleccionado, guardamos el host en la configuración actual
-                        viewModel.insertHostConfig(HostConfigEntity(name = host.name, host = host.host, port = host.port))
-                        Toast.makeText(navController.context, "Host selected: ${host.name}", Toast.LENGTH_SHORT).show()
-                    }, viewModel = viewModel)
+        LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+            item {
+                Text("No hosts available")
+                Button(
+                    onClick = { navController.popBackStack() },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF2196F3),
+                        contentColor = Color.White
+                    ),
+                    modifier = Modifier.padding(bottom = 16.dp)
+                ) {
+                    Text("Back")
                 }
+                Button(
+                    onClick = { navController.navigate("addHost") },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3), contentColor = Color.White),
+                    modifier = Modifier.padding(bottom = 16.dp)
+                ) {
+                    Text("Add")
+                }
+            }
+        }
+    } else {
+        LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+            item {
+                Button(
+                    onClick = { navController.popBackStack() },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3), contentColor = Color.White),
+                    modifier = Modifier.padding(bottom = 16.dp)
+                ) {
+                    Text("Back")
+                }
+                Button(
+                    onClick = { navController.navigate("addHost") },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3), contentColor = Color.White),
+                    modifier = Modifier.padding(bottom = 16.dp)
+                ) {
+                    Text("Add")
+                }
+            }
+            items(hostList) { host ->
+                HostItem(host = host, onClick = {
+                    viewModel.insertHostConfig(HostConfigEntity(name = host.name, host = host.host, port = host.port))
+                    Log.i("Host selected:", host.name)
+                }, viewModel = viewModel)
             }
         }
     }
@@ -67,37 +79,35 @@ fun HostScreen(navController: NavController, viewModel: ServiceViewModel) {
 
 @Composable
 fun HostItem(host: HostConfigEntity, onClick: () -> Unit, viewModel: ServiceViewModel) {
+    Card(modifier = Modifier.padding(8.dp)) {
+        Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+            if(enable == host.id){
+                Text(text = "Enable", color = Color.Green)
+            } else {
+                Text(text = "Disable", color = Color.Red)
+            }
 
-    val processList by viewModel.uiState.collectAsState()
+            Text(text = "Name: ${host.name}")
+            Text(text = "Host: ${host.host}")
+            Text(text = "Port: ${host.port}")
 
-    LazyColumn {
-        items(processList.llistaProcess) { process ->
-            Card(modifier = Modifier.padding(8.dp)) {
-                Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-                    Text(text = "Name: ${host.name}")
-                    Text(text = "Host: ${host.host}")
-                    Text(text = "Port: ${host.port}")
+            Spacer(modifier = Modifier.height(8.dp))
 
-                    Spacer(modifier = Modifier.height(8.dp))
+            Button(onClick = {
+                    enable = host.id
+                    viewModel.updateViewHosts()
+            }) {
+                Text(text = "Select Host")
+            }
 
-                    Button(onClick = onClick) {
-                        Text(text = "Select Host")
-                    }
-
-                    Button(
-                        onClick = {
-                            viewModel.deleteHostConfig(host.id)
-                            viewModel.emitDeleteHostEvent(host.id)
-
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.Red,
-                            contentColor = Color.White
-                        )
-                    ) {
-                        Text(text = "Delete")
-                    }
-                }
+            Button(
+                onClick = {
+                    viewModel.deleteHostConfig(host.id)
+                    viewModel.emitDeleteHostEvent(host.id)
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Red, contentColor = Color.White)
+            ) {
+                Text(text = "Delete")
             }
         }
     }
@@ -135,7 +145,9 @@ fun AddHostScreen(navController: NavController, viewModel: ServiceViewModel) {
             onClick = {
                 val newHost = HostConfigEntity(name = name, host = host, port = port)
                 viewModel.insertHostConfig(newHost)
+
                 navController.popBackStack()
+                Log.i("Host added:", name)
             },
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3), contentColor = Color.White)
         ) {

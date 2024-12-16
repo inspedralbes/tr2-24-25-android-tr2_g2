@@ -23,11 +23,12 @@ import io.socket.emitter.Emitter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.Console
 
 data class LlistaProcessViewModel(var llistaProcess: List<Process> = emptyList())
 data class LlistaHostsViewModel(var hostConfigList: List<HostConfigEntity> = emptyList())
 
-class ServiceViewModel(application: Application, viewModel: ViewModel) : AndroidViewModel(application) {
+class ServiceViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(LlistaProcessViewModel())
     val uiState: StateFlow<LlistaProcessViewModel> = _uiState.asStateFlow()
@@ -120,7 +121,7 @@ class ServiceViewModel(application: Application, viewModel: ViewModel) : Android
 
     }
 
-    private suspend fun getAllHosts(){
+    private suspend fun getAllHosts() {
         val hostConfigList = hostConfigDao.getAll()
         _hostState.value = LlistaHostsViewModel(hostConfigList)
     }
@@ -137,12 +138,26 @@ class ServiceViewModel(application: Application, viewModel: ViewModel) : Android
     fun insertHostConfig(hostConfig: HostConfigEntity){
         viewModelScope.launch {
             hostConfigDao.insertData(hostConfig)
+            getAllHosts()
         }
      }
 
     fun deleteHostConfig(id: Int) {
         viewModelScope.launch {
-            hostConfigDao.deleteData(id)
+            try {
+                hostConfigDao.deleteData(id)
+                getAllHosts() // Actualiza la lista de hosts después de eliminar
+                Log.i("Host deleted:", "$id")
+            } catch (e: Exception) {
+                Log.e("ServiceViewModel", "Error deleting host config: ${e.message}")
+            }
+        }
+    }
+
+    fun updateViewHosts(){
+        viewModelScope.launch {
+            getAllHosts()
+            socket_process.emit("getHosts")
         }
     }
 

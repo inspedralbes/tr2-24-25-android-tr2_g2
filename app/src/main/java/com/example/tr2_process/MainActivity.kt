@@ -25,7 +25,6 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
 
                 val viewModel = remember { ServiceViewModel(application) }
-
                 val hostConfig1 = HostConfigEntity(name = "Host1", host = "http://10.0.2.2", port = "3000")
                 val hostConfig2 = HostConfigEntity(name = "Host2", host = "http://10.0.2.2", port = "3000")
                 viewModel.insertHostConfig(hostConfig1)

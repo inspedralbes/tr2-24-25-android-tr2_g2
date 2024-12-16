@@ -1,6 +1,9 @@
 package com.example.tr2_process.ui.theme
 
 import android.app.Application
+import android.util.Log
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -17,12 +20,14 @@ import kotlinx.coroutines.flow.asStateFlow
 import io.socket.client.Socket
 import io.socket.client.IO
 import io.socket.emitter.Emitter
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 data class LlistaProcessViewModel(var llistaProcess: List<Process> = emptyList())
 data class LlistaHostsViewModel(var hostConfigList: List<HostConfigEntity> = emptyList())
 
-class ServiceViewModel(application: Application) : AndroidViewModel(application) {
+class ServiceViewModel(application: Application, viewModel: ViewModel) : AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(LlistaProcessViewModel())
     val uiState: StateFlow<LlistaProcessViewModel> = _uiState.asStateFlow()
@@ -42,13 +47,26 @@ class ServiceViewModel(application: Application) : AndroidViewModel(application)
 
     private val hostConfigDao = db.hostConfigDao()
 
+//    init {
+//        viewModelScope.launch {
+//            withContext(Dispatchers.IO) {
+//                db.clearAllTables()
+//            }
+//            getAllProcess()
+//            getHostConfig()
+//            connectSocket()
+//        }
+//    }
+
     init {
         viewModelScope.launch {
             getAllProcess()
             getHostConfig()
+            getAllHosts()
         }
-        connectSocket()
+       connectSocket()
     }
+
 
     private fun connectSocket() {
         try{
@@ -60,6 +78,7 @@ class ServiceViewModel(application: Application) : AndroidViewModel(application)
         socket_process.on(Socket.EVENT_CONNECT){
             println("Socket conectado")
             socket_process.on("wsdata", actualizarServicios)
+            socket_process.on("deleteHost", actualizarHosts)
         }
         socket_process.on(Socket.EVENT_DISCONNECT){
             println("Socket desconectado")
@@ -73,6 +92,18 @@ class ServiceViewModel(application: Application) : AndroidViewModel(application)
         val data = gson.fromJson(dataJson, Array<Process>::class.java).toList()
         println("Datos parseados: $data")
         updateProcessList(data)
+    }
+
+    private val actualizarHosts = Emitter.Listener { args ->
+        val dataJson = args[0] as String
+        println("data Json: $dataJson")
+
+        val data = gson.fromJson(dataJson, Array<HostConfigEntity>::class.java).toList()
+        updateHostList(data)
+    }
+
+    private fun updateHostList(newData: List<HostConfigEntity>) {
+        _hostState.value = LlistaHostsViewModel(newData)
     }
 
     private fun updateProcessList(newData: List<Process>) {
@@ -89,6 +120,11 @@ class ServiceViewModel(application: Application) : AndroidViewModel(application)
 
     }
 
+    private suspend fun getAllHosts(){
+        val hostConfigList = hostConfigDao.getAll()
+        _hostState.value = LlistaHostsViewModel(hostConfigList)
+    }
+
     private suspend fun getHostConfig(){
         try{
             val hostConfigList = hostConfigDao.getAll()
@@ -102,6 +138,17 @@ class ServiceViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch {
             hostConfigDao.insertData(hostConfig)
         }
+     }
+
+    fun deleteHostConfig(id: Int) {
+        viewModelScope.launch {
+            hostConfigDao.deleteData(id)
+        }
+    }
+
+    fun emitDeleteHostEvent(hostId: Int) {
+        socket_process.emit("deleteHost", hostId)
+        Log.i("Host deleted:", "$hostId")
     }
 
 

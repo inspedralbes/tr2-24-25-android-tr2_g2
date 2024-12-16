@@ -7,6 +7,7 @@ import androidx.room.Insert
 import androidx.room.PrimaryKey
 import androidx.room.Query
 import androidx.room.RoomDatabase
+import retrofit2.http.DELETE
 
 @Database(entities = [HostConfigEntity::class], version = 1)
 abstract class AppDatabase : RoomDatabase() {
@@ -25,6 +26,9 @@ data class HostConfigEntity(
 interface HostConfigDao {
     @Insert
     suspend fun insertData(process: HostConfigEntity)
+
+    @Query("DELETE FROM host_config WHERE id = :id")
+    suspend fun deleteData(id: Int)
 
     @Query("SELECT * FROM host_config WHERE id = :id")
     suspend fun getById(id: Int): HostConfigEntity

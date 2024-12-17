@@ -2,17 +2,14 @@ package com.example.tr2_process.ui.theme
 
 import android.app.Application
 import android.util.Log
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.room.Room
 import com.example.tr2_process.data.AppDatabase
-import com.example.tr2_process.data.HostConfigDao
 import com.example.tr2_process.data.HostConfigEntity
 import com.example.tr2_process.model.Process
 import com.example.tr2_process.network.ApiService
+import com.example.tr2_process.network.updateUrlHost
 import com.google.gson.Gson
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,7 +20,6 @@ import io.socket.emitter.Emitter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.Console
 
 data class LlistaProcessViewModel(var llistaProcess: List<Process> = emptyList())
 data class LlistaHostsViewModel(var hostConfigList: List<HostConfigEntity> = emptyList())
@@ -46,28 +42,20 @@ class ServiceViewModel(application: Application) : AndroidViewModel(application)
         "process_config"
     ).build()
 
-    private val hostConfigDao = db.hostConfigDao()
-
-//    init {
-//        viewModelScope.launch {
-//            withContext(Dispatchers.IO) {
-//                db.clearAllTables()
-//            }
-//            getAllProcess()
-//            getHostConfig()
-//            connectSocket()
-//        }
-//    }
+    val hostConfigDao = db.hostConfigDao()
 
     init {
         viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                db.clearAllTables()
+            }
             getAllProcess()
             getHostConfig()
             getAllHosts()
+            updateUrlHost(hostConfigDao)
         }
        connectSocket()
     }
-
 
     private fun connectSocket() {
         try{
@@ -79,7 +67,7 @@ class ServiceViewModel(application: Application) : AndroidViewModel(application)
         socket_process.on(Socket.EVENT_CONNECT){
             println("Socket conectado")
             socket_process.on("wsdata", actualizarServicios)
-            socket_process.on("deleteHost", actualizarHosts)
+            socket_process.on("updateHost", actualizarHosts)
         }
         socket_process.on(Socket.EVENT_DISCONNECT){
             println("Socket desconectado")
@@ -115,15 +103,20 @@ class ServiceViewModel(application: Application) : AndroidViewModel(application)
         return ApiService.retrofitService.getProcess()
     }
 
+    suspend fun updateUrl(): HostConfigEntity {
+        val enabledHostConfig = hostConfigDao.getEnabled()
+        return enabledHostConfig
+    }
+
     private suspend fun getAllProcess() {
         val processList = getProcessFromApi()
         _uiState.value = LlistaProcessViewModel(processList)
-
     }
 
     private suspend fun getAllHosts() {
         val hostConfigList = hostConfigDao.getAll()
         _hostState.value = LlistaHostsViewModel(hostConfigList)
+        Log.i("Hosts:", hostConfigList.toString())
     }
 
     private suspend fun getHostConfig(){
@@ -146,7 +139,7 @@ class ServiceViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch {
             try {
                 hostConfigDao.deleteData(id)
-                getAllHosts() // Actualiza la lista de hosts después de eliminar
+                getAllHosts()
                 Log.i("Host deleted:", "$id")
             } catch (e: Exception) {
                 Log.e("ServiceViewModel", "Error deleting host config: ${e.message}")
@@ -154,18 +147,28 @@ class ServiceViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    fun updateViewHosts(){
-        viewModelScope.launch {
-            getAllHosts()
-            socket_process.emit("getHosts")
-        }
-    }
-
     fun emitDeleteHostEvent(hostId: Int) {
-        socket_process.emit("deleteHost", hostId)
+        socket_process.emit("updateHost", hostId)
         Log.i("Host deleted:", "$hostId")
     }
 
+    fun updateViewHosts(hostId: Int) {
+        viewModelScope.launch {
+            socket_process.emit("updateHost", hostId)
+            getAllHosts()
+            Log.i("Host selected:", "$hostId")
+        }
+    }
+
+    fun updateHostConfig(hostConfig: HostConfigEntity) {
+        viewModelScope.launch {
+                hostConfigDao.disableAll()
+                hostConfigDao.enableById(hostConfig.id)
+                getAllHosts()
+                updateUrlHost(hostConfigDao)
+                Log.i("List Hosts:", hostConfigDao.getAll().toString())
+        }
+    }
 
     fun startService(id: String, onResult: (Process?) -> Unit) {
         viewModelScope.launch {
@@ -190,6 +193,8 @@ class ServiceViewModel(application: Application) : AndroidViewModel(application)
             }
         }
     }
+
+
 
 //    fun changeEnabledProcess(id: String, onResult: (Process?) -> Unit) {
 //        viewModelScope.launch {

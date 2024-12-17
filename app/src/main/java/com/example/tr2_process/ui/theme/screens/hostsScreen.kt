@@ -1,7 +1,6 @@
 package com.example.tr2_process.ui.theme.screens
 
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -14,13 +13,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.tr2_process.ui.theme.ServiceViewModel
 import com.example.tr2_process.data.HostConfigEntity
-
-var enable: Int = 0
+import com.example.tr2_process.network.updateUrlHost
 
 @Composable
 fun HostScreen(navController: NavController, viewModel: ServiceViewModel) {
@@ -81,7 +78,7 @@ fun HostScreen(navController: NavController, viewModel: ServiceViewModel) {
 fun HostItem(host: HostConfigEntity, onClick: () -> Unit, viewModel: ServiceViewModel) {
     Card(modifier = Modifier.padding(8.dp)) {
         Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-            if(enable == host.id){
+            if(host.enable){
                 Text(text = "Enable", color = Color.Green)
             } else {
                 Text(text = "Disable", color = Color.Red)
@@ -94,8 +91,8 @@ fun HostItem(host: HostConfigEntity, onClick: () -> Unit, viewModel: ServiceView
             Spacer(modifier = Modifier.height(8.dp))
 
             Button(onClick = {
-                    enable = host.id
-                    viewModel.updateViewHosts()
+                    viewModel.updateHostConfig(host)
+                    viewModel.updateViewHosts(hostId = host.id)
             }) {
                 Text(text = "Select Host")
             }

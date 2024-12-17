@@ -1,11 +1,13 @@
 package com.example.tr2_process.ui.theme.screens
 
 import android.util.Log
+import androidx.lifecycle.viewModelScope
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -17,11 +19,16 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.tr2_process.ui.theme.ServiceViewModel
 import com.example.tr2_process.data.HostConfigEntity
-import com.example.tr2_process.network.updateUrlHost
+import kotlinx.coroutines.launch
+
 
 @Composable
 fun HostScreen(navController: NavController, viewModel: ServiceViewModel) {
     val hostList = viewModel.hostState.collectAsState().value.hostConfigList
+
+    LaunchedEffect(Unit) {
+        viewModel.getAllProcess()
+    }
 
     if (hostList.isEmpty()) {
         LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
@@ -91,8 +98,11 @@ fun HostItem(host: HostConfigEntity, onClick: () -> Unit, viewModel: ServiceView
             Spacer(modifier = Modifier.height(8.dp))
 
             Button(onClick = {
-                    viewModel.updateHostConfig(host)
+                viewModel.updateHostConfig(host)
+                viewModel.viewModelScope.launch {
+                    viewModel.updateUrl()
                     viewModel.updateViewHosts(hostId = host.id)
+                }
             }) {
                 Text(text = "Select Host")
             }

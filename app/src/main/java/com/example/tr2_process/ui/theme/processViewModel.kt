@@ -49,10 +49,10 @@ class ServiceViewModel(application: Application) : AndroidViewModel(application)
             withContext(Dispatchers.IO) {
                 db.clearAllTables()
             }
-            getAllProcess()
             getHostConfig()
             getAllHosts()
             updateUrlHost(hostConfigDao)
+            getAllProcess()
         }
        connectSocket()
     }
@@ -108,9 +108,15 @@ class ServiceViewModel(application: Application) : AndroidViewModel(application)
         return enabledHostConfig
     }
 
-    private suspend fun getAllProcess() {
-        val processList = getProcessFromApi()
-        _uiState.value = LlistaProcessViewModel(processList)
+    suspend fun getAllProcess() {
+        try {
+            updateUrlHost(hostConfigDao)
+            val processList = ApiService.retrofitService.getProcess()
+            _uiState.value = LlistaProcessViewModel(processList)
+            Log.i("Process:", processList.toString())
+        } catch (e: Exception) {
+            Log.e("getAllProcess", "Error fetching processes: ${e.message}")
+        }
     }
 
     private suspend fun getAllHosts() {
@@ -162,12 +168,18 @@ class ServiceViewModel(application: Application) : AndroidViewModel(application)
 
     fun updateHostConfig(hostConfig: HostConfigEntity) {
         viewModelScope.launch {
-                hostConfigDao.disableAll()
-                hostConfigDao.enableById(hostConfig.id)
-                getAllHosts()
-                updateUrlHost(hostConfigDao)
-                Log.i("List Hosts:", hostConfigDao.getAll().toString())
+            hostConfigDao.disableAll()
+            hostConfigDao.enableById(hostConfig.id)
+            updateUrlHost(hostConfigDao)
+            reconnectSocket()
+            getAllHosts() // Asegúrate de llamar a getAllHosts después de actualizar la configuración
+            getAllProcess() // Llama a getAllProcess después de actualizar la configuración
+            Log.i("List Hosts:", hostConfigDao.getAll().toString())
         }
+    }
+    private fun reconnectSocket() {
+        socket_process.disconnect()
+        connectSocket()
     }
 
     fun startService(id: String, onResult: (Process?) -> Unit) {

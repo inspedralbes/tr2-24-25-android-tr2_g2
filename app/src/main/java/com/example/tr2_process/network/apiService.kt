@@ -10,24 +10,21 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Path
-import androidx.lifecycle.viewModelScope
 import com.example.tr2_process.data.HostConfigDao
 
-
-private var DEV_URL = "http://10.0.2.2:3000/"
-
+private var DEV_URL = "http://10.0.2.2:3001/"
 
 
 suspend fun updateUrlHost(hostConfigDao: HostConfigDao) {
-
     val enabledHostConfig = hostConfigDao.getEnabled()
 
     if (enabledHostConfig != null) {
-        DEV_URL = enabledHostConfig.host + ":" + enabledHostConfig.port + "/"
+        DEV_URL = "${enabledHostConfig.host}:${enabledHostConfig.port}/"
         retrofit = createRetrofitInstance(DEV_URL)
-        Log.i("URL", DEV_URL)
+        Log.i("DEV_URL", DEV_URL)
     } else {
         DEV_URL = "http://10.0.2.2:3000/"
+        retrofit = createRetrofitInstance(DEV_URL)
     }
 }
 

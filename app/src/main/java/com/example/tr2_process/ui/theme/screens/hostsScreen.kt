@@ -13,6 +13,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -25,10 +26,6 @@ import kotlinx.coroutines.launch
 @Composable
 fun HostScreen(navController: NavController, viewModel: ServiceViewModel) {
     val hostList = viewModel.hostState.collectAsState().value.hostConfigList
-
-    LaunchedEffect(Unit) {
-        viewModel.getAllProcess()
-    }
 
     if (hostList.isEmpty()) {
         LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
@@ -148,17 +145,34 @@ fun AddHostScreen(navController: NavController, viewModel: ServiceViewModel) {
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(16.dp))
-        Button(
-            onClick = {
-                val newHost = HostConfigEntity(name = name, host = host, port = port)
-                viewModel.insertHostConfig(newHost)
-
-                navController.popBackStack()
-                Log.i("Host added:", name)
-            },
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3), contentColor = Color.White)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text("Add Host")
+            Button(
+                onClick = {
+                    val newHost = HostConfigEntity(name = name, host = host, port = port)
+                    viewModel.insertHostConfig(newHost)
+
+                    navController.popBackStack()
+                    Log.i("Host added:", name)
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF2196F3),
+                    contentColor = Color.White
+                )
+            ) {
+                Text("Add Host")
+            }
+            Button(
+                onClick = { navController.popBackStack() },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Gray,
+                    contentColor = Color.White
+                )
+            ) {
+                Text("Back")
+            }
         }
     }
 }

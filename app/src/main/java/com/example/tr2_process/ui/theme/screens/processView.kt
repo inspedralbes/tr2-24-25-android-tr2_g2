@@ -1,5 +1,6 @@
 package com.example.tr2_process.ui.theme.screens
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -22,6 +23,10 @@ import com.example.tr2_process.ui.theme.ServiceViewModel
 @Composable
 fun ListProcess(navController: NavController, viewModel: ServiceViewModel) {
 
+    LaunchedEffect(Unit) {
+        viewModel.getAllProcess()
+    }
+
     val processList by viewModel.uiState.collectAsState()
 
     Box(
@@ -36,25 +41,28 @@ fun ListProcess(navController: NavController, viewModel: ServiceViewModel) {
                 .wrapContentHeight()
                 .padding(16.dp)
         ) {
-            // Botón de "Hosts" fuera de la lista de procesos
-            Button(
-                onClick = {
-                    navController.navigate("hosts")  // Ruta hacia la pantalla de Hosts
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF9C27B0), contentColor = Color.White),
-                modifier = Modifier.padding(bottom = 16.dp) // Espaciado debajo del botón
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Hosts")
+                Button(
+                    onClick = {
+                        navController.navigate("hosts")
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF9C27B0), contentColor = Color.White),
+                    modifier = Modifier.padding(bottom = 16.dp)
+                ) {
+                    Text("Hosts")
+                }
             }
 
-            // Lista de procesos
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 items(processList.llistaProcess) { process ->
                     ProcessRow(process, onStart = { id ->
-                        // Handle start service action
                         viewModel.startService(id) { updatedProcess ->
                             if (updatedProcess != null) {
                                 println("Service started successfully: ${updatedProcess.name}")
@@ -63,7 +71,6 @@ fun ListProcess(navController: NavController, viewModel: ServiceViewModel) {
                             }
                         }
                     }, onStop = { id ->
-                        // Handle stop service action
                         viewModel.stopService(id) { updatedProcess ->
                             if (updatedProcess != null) {
                                 println("Service stopped successfully: ${updatedProcess.name}")

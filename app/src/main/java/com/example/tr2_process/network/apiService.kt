@@ -14,17 +14,25 @@ import com.example.tr2_process.data.HostConfigDao
 
 private var DEV_URL = "http://10.0.2.2:3001/"
 
+private var retrofit = createRetrofitInstance(DEV_URL)
+
+
 
 suspend fun updateUrlHost(hostConfigDao: HostConfigDao) {
-    val enabledHostConfig = hostConfigDao.getEnabled()
+    try {
+        val enabledHostConfig = hostConfigDao.getEnabled()
 
-    if (enabledHostConfig != null) {
-        DEV_URL = "${enabledHostConfig.host}:${enabledHostConfig.port}/"
+        if (enabledHostConfig != null) {
+            DEV_URL = "${enabledHostConfig.host}:${enabledHostConfig.port}/"
+        } else {
+            DEV_URL = "http://10.0.2.2:3000/"
+        }
+
+        // Recreate the Retrofit instance with the updated URL
         retrofit = createRetrofitInstance(DEV_URL)
-        Log.i("DEV_URL", DEV_URL)
-    } else {
-        DEV_URL = "http://10.0.2.2:3000/"
-        retrofit = createRetrofitInstance(DEV_URL)
+        ApiService.retrofitService = retrofit.create(ServerApiService::class.java)
+    } catch (e: Exception) {
+        Log.e("updateUrlHost", "Error updating URL host: ${e.message}")
     }
 }
 
@@ -34,9 +42,6 @@ private fun createRetrofitInstance(baseUrl: String): Retrofit {
         .addConverterFactory(GsonConverterFactory.create(GsonBuilder().create()))
         .build()
 }
-
-private var retrofit = createRetrofitInstance(DEV_URL)
-
 interface ServerApiService {
     @GET("getProcess")
     suspend fun getProcess(): MutableList<Process>
@@ -56,7 +61,5 @@ interface ServerApiService {
 }
 
 object ApiService {
-    val retrofitService: ServerApiService by lazy {
-        retrofit.create(ServerApiService::class.java)
-    }
+    lateinit var retrofitService: ServerApiService
 }

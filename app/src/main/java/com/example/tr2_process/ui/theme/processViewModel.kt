@@ -3,6 +3,8 @@ package com.example.tr2_process.ui.theme
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.room.Room
 import com.example.tr2_process.data.AppDatabase
@@ -109,13 +111,19 @@ class ServiceViewModel(application: Application) : AndroidViewModel(application)
     }
 
     suspend fun getAllProcess() {
+        Log.i("getAllProcess", "Fetching processes")
         try {
-            updateUrlHost(hostConfigDao)
-            val processList = ApiService.retrofitService.getProcess()
-            _uiState.value = LlistaProcessViewModel(processList)
-            Log.i("Process:", processList.toString())
+            withContext(Dispatchers.IO) {
+                updateUrlHost(hostConfigDao)
+                val processList = ApiService.retrofitService.getProcess()
+                Log.i("lista de los cojones", processList.toString())
+                withContext(Dispatchers.Main) {
+                    _uiState.value = LlistaProcessViewModel(processList)
+                    Log.i("getAllProcess", processList.toString())
+                }
+            }
         } catch (e: Exception) {
-            Log.e("getAllProcess", "Error fetching processes: ${e.message}")
+            Log.e("ERROR", "Error fetching processes: ${e.message}")
         }
     }
 

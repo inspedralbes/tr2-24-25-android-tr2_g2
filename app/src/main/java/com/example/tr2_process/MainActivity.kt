@@ -8,6 +8,7 @@ import androidx.compose.runtime.remember
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.tr2_process.data.HostConfigDao
 import com.example.tr2_process.data.HostConfigEntity
 import com.example.tr2_process.ui.theme.ServiceViewModel
 import com.example.tr2_process.ui.theme.Tr2processTheme
@@ -25,8 +26,8 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
 
                 val viewModel = remember { ServiceViewModel(application) }
-                val hostConfig1 = HostConfigEntity(name = "Host1", host = "http://10.0.2.2", port = "3000", enable = true)
-                val hostConfig2 = HostConfigEntity(name = "Host2", host = "http://10.0.2.2", port = "3001")
+                val hostConfig1 = HostConfigEntity(name = "Host1", host = "http://10.0.2.2", port = "3000")
+                val hostConfig2 = HostConfigEntity(name = "Host2", host = "http://10.0.2.2", port = "3001", enable = true)
                 viewModel.insertHostConfig(hostConfig1)
                 viewModel.insertHostConfig(hostConfig2)
 

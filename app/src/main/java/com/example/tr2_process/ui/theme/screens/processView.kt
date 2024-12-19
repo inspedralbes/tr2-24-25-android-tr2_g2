@@ -81,6 +81,7 @@ fun ListProcess(navController: NavController, viewModel: ServiceViewModel) {
                     }, navController = navController)
                 }
             }
+
         }
     }
 }
@@ -124,7 +125,7 @@ fun ProcessRow(process: Process, onStart: (String) -> Unit, onStop: (String) -> 
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "$processName (${process.status})",
+                        text = "$processName\n(${process.status})",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF333333),

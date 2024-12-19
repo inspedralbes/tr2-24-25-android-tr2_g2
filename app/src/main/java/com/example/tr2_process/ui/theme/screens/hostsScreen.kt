@@ -94,14 +94,16 @@ fun HostItem(host: HostConfigEntity, onClick: () -> Unit, viewModel: ServiceView
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Button(onClick = {
-                viewModel.updateHostConfig(host)
-                viewModel.viewModelScope.launch {
-                    viewModel.updateUrl()
-                    viewModel.updateViewHosts(hostId = host.id)
+            if (!host.enable) {
+                Button(onClick = {
+                    viewModel.updateHostConfig(host)
+                    viewModel.viewModelScope.launch {
+                        viewModel.updateUrl()
+                        viewModel.updateViewHosts(hostId = host.id)
+                    }
+                }) {
+                    Text(text = "Select Host")
                 }
-            }) {
-                Text(text = "Select Host")
             }
 
             Button(

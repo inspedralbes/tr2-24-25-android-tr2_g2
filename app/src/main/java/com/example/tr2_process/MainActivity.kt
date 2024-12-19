@@ -26,10 +26,8 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
 
                 val viewModel = remember { ServiceViewModel(application) }
-                val hostConfig1 = HostConfigEntity(name = "Host1", host = "http://10.0.2.2", port = "3000")
-                val hostConfig2 = HostConfigEntity(name = "Host2", host = "http://10.0.2.2", port = "3001", enable = true)
+                val hostConfig1 = HostConfigEntity(name = "Host1", host = "http://10.0.2.2", port = "4000", enable = true)
                 viewModel.insertHostConfig(hostConfig1)
-                viewModel.insertHostConfig(hostConfig2)
 
                 NavHost(navController, startDestination = "list") {
                     composable("list") { ListProcess(navController, viewModel) }

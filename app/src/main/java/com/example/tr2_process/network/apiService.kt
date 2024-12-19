@@ -1,9 +1,6 @@
 package com.example.tr2_process.network
 
 import android.util.Log
-import androidx.lifecycle.ViewModel
-import androidx.room.Room
-import com.example.tr2_process.data.AppDatabase
 import com.example.tr2_process.model.Process
 import com.google.gson.GsonBuilder
 import retrofit2.Retrofit
@@ -25,7 +22,7 @@ suspend fun updateUrlHost(hostConfigDao: HostConfigDao) {
         if (enabledHostConfig != null) {
             DEV_URL = "${enabledHostConfig.host}:${enabledHostConfig.port}/"
         } else {
-            DEV_URL = "http://10.0.2.2:3000/"
+            DEV_URL = "http://10.0.2.2:4000/"
         }
 
         // Recreate the Retrofit instance with the updated URL

@@ -9,7 +9,7 @@ import retrofit2.http.GET
 import retrofit2.http.Path
 import com.example.tr2_process.data.HostConfigDao
 
-private var DEV_URL = "http://10.0.2.2:3001/"
+private var DEV_URL = "http://conexus.dam.inspedralbes.cat:24848/"
 
 private var retrofit = createRetrofitInstance(DEV_URL)
 
@@ -22,7 +22,7 @@ suspend fun updateUrlHost(hostConfigDao: HostConfigDao) {
         if (enabledHostConfig != null) {
             DEV_URL = "${enabledHostConfig.host}:${enabledHostConfig.port}/"
         } else {
-            DEV_URL = "http://10.0.2.2:4000/"
+            DEV_URL = "http://conexus.dam.inspedralbes.cat:24848/"
         }
 
         // Recreate the Retrofit instance with the updated URL

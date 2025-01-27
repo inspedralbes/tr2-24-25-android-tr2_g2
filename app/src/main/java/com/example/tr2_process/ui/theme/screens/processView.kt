@@ -156,7 +156,7 @@ fun ProcessRow(process: Process, onStart: (String) -> Unit, onStop: (String) -> 
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                if (process.enabled != "enabled") {
+                if (process.status == "stopped") {
                     Button(
                         onClick = {
                             println("Starting service for process ID: ${process.id}")
@@ -166,7 +166,7 @@ fun ProcessRow(process: Process, onStart: (String) -> Unit, onStop: (String) -> 
                     ) {
                         Text("Start")
                     }
-                } else {
+                } else if (process.status == "running" || process.status == "error") {
                     Button(
                         onClick = {
                             println("Stopping service for process ID: ${process.id}")

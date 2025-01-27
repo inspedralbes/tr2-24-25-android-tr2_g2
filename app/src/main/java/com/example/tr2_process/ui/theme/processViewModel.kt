@@ -32,7 +32,7 @@ class ServiceViewModel(application: Application) : AndroidViewModel(application)
     private val _hostState = MutableStateFlow(LlistaHostsViewModel())
     val hostState: StateFlow<LlistaHostsViewModel> = _hostState.asStateFlow()
 
-    private val URL_SOCKET_DEV = "http://10.0.2.2:3000/"
+    private val URL_SOCKET_DEV = "http://conexus.dam.inspedralbes.cat:24848/"
     private val gson = Gson()
     private lateinit var socket_process: Socket
 

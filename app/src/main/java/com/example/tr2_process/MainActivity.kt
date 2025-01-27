@@ -26,8 +26,8 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
 
                 val viewModel = remember { ServiceViewModel(application) }
-                val hostConfig1 = HostConfigEntity(name = "Community&Employument", host = "http://conexus.dam.inspedralbes.cat", port = "24848", enable = true)
-                val hostConfig2 = HostConfigEntity(name = "Chat,IaIamge,IaText,Notifications,Statisics", host = "http://conexus.dam.inspedralbes.cat", port = "24852", enable = false)
+                val hostConfig1 = HostConfigEntity(name = "Local", host = "http://10.0.2.2", port = "24848", enable = true)
+                val hostConfig2 = HostConfigEntity(name = "Prod", host = "http://conexus.dam.inspedralbes.cat", port = "24848", enable = false)
                 viewModel.insertHostConfig(hostConfig1)
                 viewModel.insertHostConfig(hostConfig2)
 
